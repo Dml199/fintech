@@ -1,0 +1,8 @@
+node_modules
+./web_scraping/node_modules
+./web_scraping/.env
+
+./web_scraping/generated/prisma
+
+
+
