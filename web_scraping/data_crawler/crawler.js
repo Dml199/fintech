@@ -68,17 +68,12 @@ async function main() {
 
   const valid_list = await DbAPIHandler.findPost(clean_data);
 
-  let batch_size_options = [1, 2, 3, 4, 5, 6];
-  let batch_size;
-  for (let i = batch_size_options.length - 1; i >= 0; --i) {
-    console.log(valid_list.length, batch_size_options[i]);
-    console.log(valid_list.length % batch_size_options[i]);
-    if (valid_list.length % batch_size_options[i] === 0) {
-      batch_size = batch_size_options[i];
-    }
-  }
-  
+  let batch_size = 5;
+
   for (let j = 0; j < valid_list.length; j = j + batch_size) {
+    if (valid_list.length - j < 5) {
+      batch_size = valid_list.length - j;
+    }
     const valid_list_ = valid_list.slice(j, j + batch_size);
     console.log(valid_list_, j, batch_size);
     const page_instances = await Promise.all(
@@ -91,9 +86,11 @@ async function main() {
       })
     );
     text_info.forEach((elem, index) => {
-      valid_list[index].content = elem.join(" ");
+      valid_list_[index].content = elem.join(" ");
     });
-
+    console.log("Valid list");
+    console.log(valid_list_);
+    console.log("Valid list end");
     await DbAPIHandler.pushPost(valid_list_);
     page_instances.map(async (page) => {
       await page.close();
