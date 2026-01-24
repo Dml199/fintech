@@ -64,7 +64,7 @@ async function main() {
   const page = await br.go_to(specs.reuters.BASE_URL);
   let data_list = await br.gather_data(page);
 
-  const clean_data = await DataTools.purifyData(data_list);
+  const clean_data = DataTools.purifyData(data_list);
 
   const valid_list = await DbAPIHandler.findPost(clean_data);
 
@@ -76,6 +76,7 @@ async function main() {
     }
     const valid_list_ = valid_list.slice(j, j + batch_size);
     console.log(valid_list_, j, batch_size);
+
     const page_instances = await Promise.all(
       valid_list_.map((page_desc) => br.go_to(page_desc.href))
     );
@@ -88,9 +89,7 @@ async function main() {
     text_info.forEach((elem, index) => {
       valid_list_[index].content = elem.join(" ");
     });
-    console.log("Valid list");
-    console.log(valid_list_);
-    console.log("Valid list end");
+
     await DbAPIHandler.pushPost(valid_list_);
     page_instances.map(async (page) => {
       await page.close();

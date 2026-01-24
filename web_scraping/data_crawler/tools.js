@@ -25,7 +25,22 @@ console.dir(list)
     }
   }
 
+  static sortByTopic(valid_list_){
+
+       const url = valid_list_.filter((item)=>{
+        const url =  new URL(item.href)
+        const path = url.pathname.split("/")
+        if(path[1] == "business" && path[2] == "energy"){
+          console.log("Detected!")
+          return true
+        }
+      else { return false}
+        })
+
+
     
+    return url
+  }
   
 
   static pruneOnFewWords(list) {
@@ -37,12 +52,13 @@ console.dir(list)
       }
     }
   }
-  static async purifyData(list) {
-    const list_ = list
+  static purifyData(list) {
+ 
     this.Validate(list);
     this.pruneOnEmptyData(list);
     this.pruneOnFewWords(list);
-    return list_
+
+    return     this.sortByTopic(list);
   }
 }
 
