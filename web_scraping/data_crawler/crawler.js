@@ -1,5 +1,5 @@
 import puppeteer from "puppeteer";
-
+import { Telegram } from "../telegram/telegram_bot.js";
 import { DataTools, DomLogicHandler } from "./tools.js";
 import {
   specs,
@@ -9,6 +9,10 @@ import {
 } from "./variables.js";
 
 import { DbAPIHandler } from "./database_api.js";
+
+
+const bot = new Telegram();
+bot.init();
 
 const browser_addr = "http://127.0.0.1:5200";
 
@@ -51,7 +55,7 @@ class Browser {
 
   async getTextInfo(page_instance) {
     let text_data = await DomLogicHandler.check_node(
-      await page_instance.$(CONTENT_PAGE_TAG)
+      await page_instance.$(CONTENT_PAGE_TAG),
     );
 
     return text_data;
@@ -78,19 +82,22 @@ async function main() {
     console.log(valid_list_, j, batch_size);
 
     const page_instances = await Promise.all(
-      valid_list_.map((page_desc) => br.go_to(page_desc.href))
+      valid_list_.map((page_desc) => br.go_to(page_desc.href)),
     );
 
     let text_info = await Promise.all(
       page_instances.map(async (page, index) => {
         return await br.getTextInfo(page);
-      })
+      }),
     );
     text_info.forEach((elem, index) => {
       valid_list_[index].content = elem.join(" ");
     });
 
+   await  valid_list_.map(async (elem)=>{await bot.notifySubscribers(elem)})
     await DbAPIHandler.pushPost(valid_list_);
+
+
     page_instances.map(async (page) => {
       await page.close();
     });
