@@ -16,13 +16,13 @@ export class Telegram {
     await this.bot.telegram.sendMessage(-1003862090694,
      
 
-        "<b style = 'font-size:16px'>Article: </b>" +
+        "<b>Article: </b>" +
         data.header +
         "\n" +
         "<b>Content: </b>" +
         data.content.slice(0,1000)+ "..." +
         "\n" +
-        "<b>Source: </b>" +
+        "<i><b>Source: </b></i>" +
         data.href , { parse_mode: 'HTML' }
     );
   }
