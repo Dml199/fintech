@@ -16,10 +16,10 @@ export class Telegram {
     await this.bot.telegram.sendMessage(-1003862090694,
      
 
-        "<b>Article: </b>" +
+        "<i><b>Article: </b></i>" +
         data.header +
         "\n" +
-        "<b>Content: </b>" +
+        "<i><b>Content: </b></i>" +
         data.content.slice(0,1000)+ "..." +
         "\n" +
         "<i><b>Source: </b></i>" +
