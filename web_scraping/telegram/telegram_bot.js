@@ -11,20 +11,34 @@ export class Telegram {
     this.bot.launch();
 
   }
+
+
   async notifySubscribers( data) {
 
     await this.bot.telegram.sendMessage(-1003862090694,
      
 
-        "<i><b>Article: </b></i>" +
-        data.header +
+        
+        `${data.header}` +
         "\n \n" +
-        "<i><b>Content: </b></i>" +
-        data.content.slice(0,1000)+ "..." +
+        
+        `${data.content.slice(0,1000)}`+ "..." +
         "\n \n" +
-        "<i><b>Source: </b></i>" +
-        data.href , { parse_mode: 'HTML' }
+        `${data.href}` 
     );
+  }
+
+
+  async notifyByInterval(data, interval ) {
+
+    for (const elem of data){
+
+      await new Promise((resolve, reject )=>{setTimeout(async ()=>{await this.notifySubscribers(elem);resolve()},interval)})
+    } 
+    
+
+       
+
   }
 }
 

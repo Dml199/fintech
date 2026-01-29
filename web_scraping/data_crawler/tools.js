@@ -16,8 +16,10 @@ export class DataTools {
       }
     }
   }
+
+
   static pruneOnEmptyContent(list ){
-console.dir(list)
+
  for (let i = list.length - 1; i >= 0; --i) {
       if (list[i].content === undefined) {
         list.splice(i, 1);
@@ -31,7 +33,7 @@ console.dir(list)
         const url =  new URL(item.href)
         const path = url.pathname.split("/")
         if(path[1] == "business" && path[2] == "energy"){
-          console.log("Detected!")
+
           return true
         }
       else { return false}
@@ -66,6 +68,9 @@ export class DomLogicHandler {
   constructor() {}
 
   static async check_node(node) {
+          console.log("some data")
+      console.log(node)
+      console.log("some data")
 
     const text_info = await node.evaluate(async (el) => {
       let data_arr = [];
@@ -81,6 +86,7 @@ export class DomLogicHandler {
 
 
       async function checkCurrentNode(elem) {
+
         const children = Array.from(elem.children);
      
         if (children.length >= 8) {
@@ -112,7 +118,7 @@ export class DomLogicHandler {
       }
 
       checkCurrentNode(el);
-       
+
       return data_arr;
     });
 
