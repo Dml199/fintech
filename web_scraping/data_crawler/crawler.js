@@ -64,17 +64,17 @@ class Browser {
   async getTextInfo() {
   
     
-    let selectorRef =  Promise.all(this.pages.map(async (page) => {
+    let selectorRef = await Promise.all(this.pages.map(async (page) => {
         return await page.$(CONTENT_PAGE_TAG);
       }))
   
-
+    console.log(selectorRef)
     let text_data = await Promise.all(
-      ref.map(async (elem) => {
+      selectorRef.map(async (elem) => {
        return await DomLogicHandler.check_node(elem);
       }),
     );
-    console.log(text_data)
+
     return text_data;
   }
 }
@@ -109,7 +109,7 @@ async function main() {
     );
 
     let text_info = await br.getTextInfo();
-
+    console.log(text_info)
     text_info.forEach((elem, index) => {
       valid_list_[index].content = elem.join(" ");
     });
