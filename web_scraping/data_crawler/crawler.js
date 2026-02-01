@@ -72,8 +72,6 @@ class Browser {
         return await page.$(CONTENT_PAGE_TAG);
       }),
     );
-
-    console.log(selectorRef);
     let text_data = await Promise.all(
       selectorRef.map(async (elem) => {
         return await DomLogicHandler.check_node(elem);
@@ -110,18 +108,27 @@ async function main() {
         return data.href;
       }),
     );
-
+    
     let text_info = await br.getTextInfo();
-    console.log(text_info);
+
     text_info.forEach((elem, index) => {
       valid_list_[index].content = elem.join(" ");
     });
 
-    await bot.notifyByInterval(valid_list_, 10000);
+    await bot.notifyByInterval(valid_list_, 5000);
     await DbAPIHandler.pushPost(valid_list_);
 
     await br.releaseMemory();
   }
 }
 
-main();
+
+async function mainLoop(){
+
+
+  await main()
+  setTimeout(async ()=>{mainLoop()},1800000)
+  
+}
+
+mainLoop()

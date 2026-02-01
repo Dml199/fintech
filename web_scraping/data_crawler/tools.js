@@ -68,9 +68,7 @@ export class DomLogicHandler {
   constructor() {}
 
   static async check_node(node) {
-          console.log("some data")
-      console.log(node)
-      console.log("some data")
+
 
     const text_info = await node.evaluate(async (el) => {
       let data_arr = [];
