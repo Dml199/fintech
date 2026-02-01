@@ -59,19 +59,24 @@ class Browser {
     this.pages.forEach(async (elem) => {
       await elem.close();
     });
+    this.pages = [];
   }
+  async releaseElement(index) {
+    this.pages[index].close();
 
+    this.pages.splice(index, 1);
+  }
   async getTextInfo() {
-  
-    
-    let selectorRef = await Promise.all(this.pages.map(async (page) => {
+    let selectorRef = await Promise.all(
+      this.pages.map(async (page) => {
         return await page.$(CONTENT_PAGE_TAG);
-      }))
-  
-    console.log(selectorRef)
+      }),
+    );
+
+    console.log(selectorRef);
     let text_data = await Promise.all(
       selectorRef.map(async (elem) => {
-       return await DomLogicHandler.check_node(elem);
+        return await DomLogicHandler.check_node(elem);
       }),
     );
 
@@ -86,8 +91,7 @@ async function main() {
   await br.go_to(specs.reuters.BASE_URL);
 
   let data_list = await br.gather_data();
-  br.pages[0].close()
-  br.pages.shift()
+  await br.releaseElement(0);
 
   const clean_data = DataTools.purifyData(data_list);
 
@@ -101,7 +105,6 @@ async function main() {
     }
     const valid_list_ = valid_list.slice(j, j + batch_size);
 
-
     await br.go_to(
       valid_list_.map((data) => {
         return data.href;
@@ -109,7 +112,7 @@ async function main() {
     );
 
     let text_info = await br.getTextInfo();
-    console.log(text_info)
+    console.log(text_info);
     text_info.forEach((elem, index) => {
       valid_list_[index].content = elem.join(" ");
     });
@@ -117,9 +120,7 @@ async function main() {
     await bot.notifyByInterval(valid_list_, 10000);
     await DbAPIHandler.pushPost(valid_list_);
 
-    page_instances.map(async (page) => {
-      await page.close();
-    });
+    await br.releaseMemory();
   }
 }
 
