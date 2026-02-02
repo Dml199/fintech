@@ -9,58 +9,60 @@ export class DataTools {
   }
 
   static pruneOnEmptyData(list) {
-
     for (let i = list.length - 1; i >= 0; --i) {
       if (list[i].href == "" || list[i].header == "") {
         list.splice(i, 1);
       }
     }
   }
+  static pruneDuplicates(list) {
+    for (let i = 0; i < list.length; ++i) {
+      for (let j = list.length-1; j > i; --j) {
+        console.log(i,j)
+        if (list[i].header == list[j].header) {console.log(true, list[i]);list.splice(i, 1)}
+        else{console.log(list[i].header,list[j].header) }
+      }
+    }
+  }
 
-
-  static pruneOnEmptyContent(list ){
-
- for (let i = list.length - 1; i >= 0; --i) {
+  static pruneOnEmptyContent(list) {
+    for (let i = list.length - 1; i >= 0; --i) {
       if (list[i].content === undefined) {
         list.splice(i, 1);
       }
     }
   }
 
-  static sortByTopic(valid_list_){
+  static sortByTopic(valid_list_) {
+    const url = valid_list_.filter((item) => {
+      const url = new URL(item.href);
+      const path = url.pathname.split("/");
+      if (path[1] == "business" && path[2] == "energy") {
+        return true;
+      } else {
+        return false;
+      }
+    });
 
-       const url = valid_list_.filter((item)=>{
-        const url =  new URL(item.href)
-        const path = url.pathname.split("/")
-        if(path[1] == "business" && path[2] == "energy"){
-
-          return true
-        }
-      else { return false}
-        })
-
-
-    
-    return url
+    return url;
   }
-  
 
   static pruneOnFewWords(list) {
-
-
     for (let i = list.length - 1; i >= 0; --i) {
       if (list[i].header.split(" ").length < 3) {
         list.splice(i, 1);
       }
     }
   }
-  static purifyData(list) {
- 
-    this.Validate(list);
-    this.pruneOnEmptyData(list);
-    this.pruneOnFewWords(list);
 
-    return     this.sortByTopic(list);
+  static purifyData(list) {
+    this.Validate(list);
+
+    this.pruneOnEmptyData(list);
+
+    this.pruneOnFewWords(list);
+         this.pruneDuplicates(list);
+    return this.sortByTopic(list);
   }
 }
 
@@ -68,46 +70,42 @@ export class DomLogicHandler {
   constructor() {}
 
   static async check_node(node) {
-
-
     const text_info = await node.evaluate(async (el) => {
       let data_arr = [];
       let clsNm_obj = [];
 
       function wordCount(item) {
-       
         if (item.split(" ").length >= 20) return true;
         else {
           return false;
         }
       }
 
-
       async function checkCurrentNode(elem) {
-
         const children = Array.from(elem.children);
-     
+
         if (children.length >= 8) {
-        for( let i = 0; i < children.length; ++i){
-           let index = clsNm_obj.findIndex((elem)=>elem.class == children[i].className)
-           if(index == -1){
-            clsNm_obj.push({class:children[i].className,count:1})
-           }
-           else{
-            clsNm_obj[index].count++
-           }
-        }
-        let biggest = clsNm_obj[0];
-        for (let j = 0; j< clsNm_obj.length; ++j)
-        {
-          if(clsNm_obj[j].count > biggest.count){
-            biggest = clsNm_obj[j]
+          for (let i = 0; i < children.length; ++i) {
+            let index = clsNm_obj.findIndex(
+              (elem) => elem.class == children[i].className,
+            );
+            if (index == -1) {
+              clsNm_obj.push({ class: children[i].className, count: 1 });
+            } else {
+              clsNm_obj[index].count++;
+            }
           }
-        }
-        children.map((elem)=>{if(elem.className == biggest.class){
-          data_arr.push(elem.textContent)
-        }})
-          
+          let biggest = clsNm_obj[0];
+          for (let j = 0; j < clsNm_obj.length; ++j) {
+            if (clsNm_obj[j].count > biggest.count) {
+              biggest = clsNm_obj[j];
+            }
+          }
+          children.map((elem) => {
+            if (elem.className == biggest.class) {
+              data_arr.push(elem.textContent);
+            }
+          });
         } else {
           for (child of elem.children) {
             await checkCurrentNode(child);

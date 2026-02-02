@@ -45,7 +45,7 @@ class Browser {
   }
 
   async gather_data() {
-    let data = await this.pages[0].$$eval("main a", (elems) => {
+    let data = await this.pages[0].$$eval("a", (elems) => {
       return elems.map((elem) => ({
         header: elem.innerText,
         href: elem.href,
@@ -87,13 +87,16 @@ async function main() {
   await br.init();
 
   await br.go_to(specs.reuters.BASE_URL);
-
+  
   let data_list = await br.gather_data();
   await br.releaseElement(0);
 
   const clean_data = DataTools.purifyData(data_list);
 
   const valid_list = await DbAPIHandler.findPost(clean_data);
+  console.log("after")
+  DataTools.pruneDuplicates(valid_list)
+  console.log(valid_list)
 
   let batch_size = 5;
 
