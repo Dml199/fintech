@@ -94,9 +94,9 @@ async function main() {
   const clean_data = DataTools.purifyData(data_list);
 
   const valid_list = await DbAPIHandler.findPost(clean_data);
-  console.log("after")
+
   DataTools.pruneDuplicates(valid_list)
-  console.log(valid_list)
+
 
   let batch_size = 5;
 
@@ -117,7 +117,7 @@ async function main() {
     text_info.forEach((elem, index) => {
       valid_list_[index].content = elem.join(" ");
     });
-
+    DataTools.pruneHtmlTags(valid_list_)
     await bot.notifyByInterval(valid_list_, 5000);
     await DbAPIHandler.pushPost(valid_list_);
 

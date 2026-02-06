@@ -17,10 +17,14 @@ export class DataTools {
   }
   static pruneDuplicates(list) {
     for (let i = 0; i < list.length; ++i) {
-      for (let j = list.length-1; j > i; --j) {
-        console.log(i,j)
-        if (list[i].header == list[j].header) {console.log(true, list[i]);list.splice(i, 1)}
-        else{console.log(list[i].header,list[j].header) }
+      for (let j = list.length - 1; j > i; --j) {
+
+        if (list[i].header == list[j].header) {
+
+          list.splice(i, 1);
+        } else {
+
+        }
       }
     }
   }
@@ -46,7 +50,18 @@ export class DataTools {
 
     return url;
   }
+  static pruneHtmlTags(list) {
+    for ( const item of list ){
+      
+      item.header = item.header.replaceAll(/<.*?>/g, "")
+     item.content =  item.content.replaceAll(/<.*?>/g, "")
+        item.header = item.header.replaceAll(/opens new tab/g, "")
+      item.content = item.content.replaceAll(/opens new tab/g, "")
 
+
+    }
+
+  }
   static pruneOnFewWords(list) {
     for (let i = list.length - 1; i >= 0; --i) {
       if (list[i].header.split(" ").length < 3) {
@@ -61,7 +76,8 @@ export class DataTools {
     this.pruneOnEmptyData(list);
 
     this.pruneOnFewWords(list);
-         this.pruneDuplicates(list);
+    this.pruneDuplicates(list);
+
     return this.sortByTopic(list);
   }
 }
