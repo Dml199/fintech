@@ -19,12 +19,12 @@ export class Telegram {
      
 
         
-        `${data.header}` +
+        `<b><i>Article:</i></b>${data.header}` +
         "\n \n" +
         
-        `${data.content.slice(0,1000)}`+ "..." +
+        `<b><i>Content:</i></b>${data.content.slice(0,1000)}`+ "..." +
         "\n \n" +
-        `${data.href}` 
+        `<b><i>Source:</i></b>${data.href}` ,{parse_mode:'HTML'}
     );
   }
 
