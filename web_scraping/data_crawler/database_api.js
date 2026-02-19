@@ -12,8 +12,8 @@ const prisma = new PrismaClient({ adapter });
 
 export class DbAPIHandler {
   static async findPost(postList) {
-    console.log("before")
-    console.log(postList)
+
+
     const existingTitles = await prisma.post.findMany({
       where: { 
         title: { in: postList.map(unit => unit.header) }

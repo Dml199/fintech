@@ -30,22 +30,28 @@ class Browser {
     this.browser = await this.browser();
   }
 
-  async go_to(data_list) {
+  async go_to(data_list, address) {
     const browserInst = this.browser;
     for (const addr of data_list) {
-      this.pages.push(await browserInst.newPage());
+      this.pages.push({
+        address: address,
+        page: await browserInst.newPage(),
+      });
     }
 
     for (let i = 0; i < data_list.length; ++i) {
-      await this.pages[i].goto(data_list[i], {
+      if(this.pages[i].address===address){
+              await this.pages[i].page.goto(data_list[i], {
         waitUntil: WAIT_FOR_PAGE_TO,
         timeout: 0,
       });
+      }
+
     }
   }
 
   async gather_data() {
-    let data = await this.pages[0].$$eval("a", (elems) => {
+    let data = await this.pages[0].page.$$eval("a", (elems) => {
       return elems.map((elem) => ({
         header: elem.innerText,
         href: elem.href,
@@ -55,23 +61,27 @@ class Browser {
     return data;
   }
 
-  async releaseMemory() {
-    this.pages.forEach(async (elem) => {
-      await elem.close();
+  async releaseMemory(address) {
+    this.pages.forEach(async (elem,index) => {
+      if (elem.address === address) {
+        await elem.close();
+        this.pages.splice(index,1);
+      }
     });
-    this.pages = [];
+
   }
   async releaseElement(index) {
-    this.pages[index].close();
+    this.pages[index].page.close();
 
     this.pages.splice(index, 1);
   }
   async getTextInfo() {
     let selectorRef = await Promise.all(
       this.pages.map(async (page) => {
-        return await page.$(CONTENT_PAGE_TAG);
+        return await page.page.$(CONTENT_PAGE_TAG);
       }),
     );
+        console.log(this.pages)
     let text_data = await Promise.all(
       selectorRef.map(async (elem) => {
         return await DomLogicHandler.check_node(elem);
@@ -87,7 +97,7 @@ async function main() {
   await br.init();
 
   await br.go_to(specs.reuters.BASE_URL);
-  
+
   let data_list = await br.gather_data();
   await br.releaseElement(0);
 
@@ -95,8 +105,7 @@ async function main() {
 
   const valid_list = await DbAPIHandler.findPost(clean_data);
 
-  DataTools.pruneDuplicates(valid_list)
-
+  DataTools.pruneDuplicates(valid_list);
 
   let batch_size = 5;
 
@@ -110,28 +119,27 @@ async function main() {
       valid_list_.map((data) => {
         return data.href;
       }),
+      "reuters",
     );
-    
+
     let text_info = await br.getTextInfo();
 
     text_info.forEach((elem, index) => {
       valid_list_[index].content = elem.join(" ");
     });
-    DataTools.pruneHtmlTags(valid_list_)
+    DataTools.pruneHtmlTags(valid_list_);
     await bot.notifyByInterval(valid_list_, 5000);
     await DbAPIHandler.pushPost(valid_list_);
 
-    await br.releaseMemory();
+    await br.releaseMemory("reuters");
   }
 }
 
-
-async function mainLoop(){
-
-
-  await main()
-  setTimeout(async ()=>{mainLoop()},1800000)
-  
+async function mainLoop() {
+  await main();
+  setTimeout(async () => {
+    mainLoop();
+  }, 1800000);
 }
 
-mainLoop()
+mainLoop();
