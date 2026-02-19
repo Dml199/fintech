@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer";
 import { Telegram } from "../telegram/telegram_bot.js";
 import { DataTools, DomLogicHandler } from "./tools.js";
+import { AskAi } from "./askAi.js"
 import {
   specs,
   FRONT_PAGE_TAG,
@@ -12,7 +13,7 @@ import { DbAPIHandler } from "./database_api.js";
 
 const bot = new Telegram();
 bot.init();
-
+const ai = new AskAi()
 const browser_addr = "http://127.0.0.1:5200";
 
 class Browser {
@@ -31,23 +32,24 @@ class Browser {
   }
 
   async go_to(data_list, address) {
-    const browserInst = this.browser;
+    let index;
     for (const addr of data_list) {
-      this.pages.push({
+      index = this.pages.push({
         address: address,
-        page: await browserInst.newPage(),
+        page: await this.browser.newPage(),
       });
     }
-
-    for (let i = 0; i < data_list.length; ++i) {
-      if(this.pages[i].address===address){
-              await this.pages[i].page.goto(data_list[i], {
-        waitUntil: WAIT_FOR_PAGE_TO,
-        timeout: 0,
-      });
+    let counter = 0
+    for (let i = 0; i < this.pages.length; i++) {
+      if (this.pages[i].address === address) {
+        await this.pages[i].page.goto(data_list[counter], {
+          waitUntil: WAIT_FOR_PAGE_TO,
+          timeout: 0,
+        });
+        counter++
       }
-
     }
+    return this.pages[index - 1];
   }
 
   async gather_data() {
@@ -62,13 +64,12 @@ class Browser {
   }
 
   async releaseMemory(address) {
-    this.pages.forEach(async (elem,index) => {
+    this.pages.forEach(async (elem, index) => {
       if (elem.address === address) {
-        await elem.close();
-        this.pages.splice(index,1);
+        await elem.page.close();
+        this.pages.splice(index, 1);
       }
     });
-
   }
   async releaseElement(index) {
     this.pages[index].page.close();
@@ -81,7 +82,7 @@ class Browser {
         return await page.page.$(CONTENT_PAGE_TAG);
       }),
     );
-        console.log(this.pages)
+    console.log(this.pages);
     let text_data = await Promise.all(
       selectorRef.map(async (elem) => {
         return await DomLogicHandler.check_node(elem);
@@ -128,7 +129,9 @@ async function main() {
       valid_list_[index].content = elem.join(" ");
     });
     DataTools.pruneHtmlTags(valid_list_);
+    
     await bot.notifyByInterval(valid_list_, 5000);
+    await ai.askPerplexity(br)
     await DbAPIHandler.pushPost(valid_list_);
 
     await br.releaseMemory("reuters");
