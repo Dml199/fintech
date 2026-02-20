@@ -8,10 +8,19 @@ export class AskAi {
         }
 
 
- async askPerplexity(browser,question = "Hello!"){
 
-   let page =  await browser.go_to(["https://www.perplexity.ai/"],"perplexity")
-    
+ async askPerplexity(browser,question = "Hello!"){
+  let page;
+   if(browser.ai_pages.find((elem)=>{return elem.address==="perplexity"})){
+     console.log("condition is true")
+       page = browser.ai_pages.find((elem)=>{elem.address==="perplexity"})
+   
+   }
+   else{ 
+        console.log("condition is false")
+    page =  await browser.go_to(["https://www.perplexity.ai/"],"perplexity")}
+
+   
 }
 
 }

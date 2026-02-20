@@ -19,6 +19,7 @@ const browser_addr = "http://127.0.0.1:5200";
 class Browser {
   constructor(local_url = "None") {
     this.pages = [];
+    this.ai_pages = [];
     this.address = local_url;
     this.browser = async () => {
       return this.address === "None"
@@ -32,13 +33,24 @@ class Browser {
   }
 
   async go_to(data_list, address) {
+
     let index;
+    console.log(data_list.length,this.pages.length)
     for (const addr of data_list) {
-      index = this.pages.push({
-        address: address,
+      if(address==="perplexity"){
+         index = this.ai_pages.push({
+        address: "perplexity",
         page: await this.browser.newPage(),
       });
-    }
+      }
+      else{
+        index = this.pages.push({
+        address: "reuters",
+        page: await this.browser.newPage(),
+      });
+      }
+      
+    }    console.log(this.pages.length)
     let counter = 0
     for (let i = 0; i < this.pages.length; i++) {
       if (this.pages[i].address === address) {
@@ -49,6 +61,14 @@ class Browser {
         counter++
       }
     }
+    if(address === "perplexity"){
+
+       this.ai_pages[0].page.goto(data_list[0], {
+          waitUntil: WAIT_FOR_PAGE_TO,
+          timeout: 0,
+        });
+    }
+   
     return this.pages[index - 1];
   }
 
@@ -64,25 +84,30 @@ class Browser {
   }
 
   async releaseMemory(address) {
-    this.pages.forEach(async (elem, index) => {
-      if (elem.address === address) {
-        await elem.page.close();
-        this.pages.splice(index, 1);
+
+    for(let i = this.pages.length-1; i >= 0; --i){
+      let page_obj = this.pages[i]
+      if (page_obj.address == address) {
+        await page_obj.page.close();
+        this.pages.splice(i, 1);
+
       }
-    });
-  }
+    };
+    }
+
   async releaseElement(index) {
     this.pages[index].page.close();
 
     this.pages.splice(index, 1);
   }
   async getTextInfo() {
+  
     let selectorRef = await Promise.all(
       this.pages.map(async (page) => {
         return await page.page.$(CONTENT_PAGE_TAG);
       }),
     );
-    console.log(this.pages);
+
     let text_data = await Promise.all(
       selectorRef.map(async (elem) => {
         return await DomLogicHandler.check_node(elem);
@@ -97,7 +122,7 @@ async function main() {
   const br = new Browser(browser_addr);
   await br.init();
 
-  await br.go_to(specs.reuters.BASE_URL);
+  await br.go_to(specs.reuters.BASE_URL,"reuters");
 
   let data_list = await br.gather_data();
   await br.releaseElement(0);
